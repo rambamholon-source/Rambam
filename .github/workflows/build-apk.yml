@@ -27,6 +27,8 @@ jobs:
           sdkmanager --install "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: Create minimal Android WebView project
+        env:
+          ICON_FILE: icon.jpg
         run: |
           mkdir -p app/src/main/java/com/shul/tracker
           mkdir -p app/src/main/res/values
@@ -39,30 +41,23 @@ jobs:
 
           cp index.html app/src/main/assets/index.html
 
-          ICON_FILE=""
-          if [ -f "icon.jpg" ]; then
-            ICON_FILE="icon.jpg"
+          CHOSEN_ICON=""
+          if [ -n "$ICON_FILE" ] && [ -f "$ICON_FILE" ]; then
+            CHOSEN_ICON="$ICON_FILE"
+          elif [ -f "icon.jpg" ]; then
+            CHOSEN_ICON="icon.jpg"
           elif [ -f "icon.jpeg" ]; then
-            ICON_FILE="icon.jpeg"
+            CHOSEN_ICON="icon.jpeg"
           elif [ -f "icon.png" ]; then
-            ICON_FILE="icon.png"
+            CHOSEN_ICON="icon.png"
           fi
 
-          python3 - << 'EOF'
-          import os
-          try:
-              from PIL import Image
-          except ImportError:
-              import subprocess, sys
-              subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "Pillow"])
-              from PIL import Image
+          python3 -m pip install --break-system-packages -q Pillow || true
 
-          icon_path = os.environ.get("ICON_FILE", "")
-          if icon_path and os.path.exists(icon_path):
-              img = Image.open(icon_path).convert("RGBA")
-          else:
-              img = Image.new("RGBA", (512, 512), (26, 54, 93, 255))
+          CHOSEN_ICON="$CHOSEN_ICON" python3 - << 'EOF'
+          import os, shutil, struct, zlib
 
+          icon_path = os.environ.get("CHOSEN_ICON", "")
           sizes = {
               "mipmap-mdpi": 48,
               "mipmap-hdpi": 72,
@@ -70,10 +65,38 @@ jobs:
               "mipmap-xxhdpi": 144,
               "mipmap-xxxhdpi": 192,
           }
-          for folder, px in sizes.items():
-              resized = img.resize((px, px), Image.Resampling.LANCZOS)
-              resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
-              resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
+
+          def write_solid_png(path, size, rgba=(26, 54, 93, 255)):
+              def chunk(tag, data):
+                  return struct.pack("!I", len(data)) + tag + data + struct.pack("!I", zlib.crc32(tag + data) & 0xffffffff)
+              raw = b"".join(b"\x00" + bytes(rgba) * size for _ in range(size))
+              ihdr = struct.pack("!IIBBBBB", size, size, 8, 6, 0, 0, 0)
+              png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+              with open(path, "wb") as f:
+                  f.write(png)
+
+          try:
+              from PIL import Image
+              if icon_path and os.path.exists(icon_path):
+                  img = Image.open(icon_path).convert("RGBA")
+              else:
+                  img = Image.new("RGBA", (512, 512), (26, 54, 93, 255))
+
+              for folder, px in sizes.items():
+                  resized = img.resize((px, px), Image.Resampling.LANCZOS)
+                  resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
+                  resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
+          except Exception as e:
+              print("Fallback icon generator used:", e)
+              for folder, px in sizes.items():
+                  p1 = f"app/src/main/res/{folder}/ic_launcher.png"
+                  p2 = f"app/src/main/res/{folder}/ic_launcher_round.png"
+                  if icon_path and os.path.exists(icon_path) and icon_path.lower().endswith(".png"):
+                      shutil.copyfile(icon_path, p1)
+                      shutil.copyfile(icon_path, p2)
+                  else:
+                      write_solid_png(p1, px)
+                      write_solid_png(p2, px)
           EOF
 
           cat << 'EOF' > gradle.properties
