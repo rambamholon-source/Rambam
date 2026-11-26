@@ -95,10 +95,6 @@ jobs:
               exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
               exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
           }
-
-          dependencies {
-              implementation 'androidx.appcompat:appcompat:1.7.0'
-          }
           EOF
 
           cat << 'EOF' > app/src/main/res/values/strings.xml
@@ -113,6 +109,7 @@ jobs:
               <uses-permission android:name="android.permission.INTERNET" />
               <application
                   android:label="@string/app_name"
+                  android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
                   android:usesCleartextTraffic="true">
                   <activity
                       android:name=".MainActivity"
@@ -129,28 +126,35 @@ jobs:
           cat << 'EOF' > app/src/main/java/com/shul/tracker/MainActivity.java
           package com.shul.tracker;
 
+          import android.app.Activity;
           import android.os.Bundle;
+          import android.webkit.WebChromeClient;
           import android.webkit.WebSettings;
           import android.webkit.WebView;
           import android.webkit.WebViewClient;
-          import androidx.appcompat.app.AppCompatActivity;
 
-          public class MainActivity extends AppCompatActivity {
+          public class MainActivity extends Activity {
               private WebView webView;
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  webView = new WebView(this);
-                  setContentView(webView);
+                  try {
+                      webView = new WebView(this);
+                      setContentView(webView);
 
-                  WebSettings settings = webView.getSettings();
-                  settings.setJavaScriptEnabled(true);
-                  settings.setDomStorageEnabled(true);
-                  settings.setDatabaseEnabled(true);
+                      WebSettings settings = webView.getSettings();
+                      settings.setJavaScriptEnabled(true);
+                      settings.setDomStorageEnabled(true);
+                      settings.setDatabaseEnabled(true);
+                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
-                  webView.setWebViewClient(new WebViewClient());
-                  webView.loadUrl("file:///android_asset/index.html");
+                      webView.setWebViewClient(new WebViewClient());
+                      webView.setWebChromeClient(new WebChromeClient());
+                      webView.loadUrl("file:///android_asset/index.html");
+                  } catch (Exception e) {
+                      e.printStackTrace();
+                  }
               }
 
               @Override
