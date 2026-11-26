@@ -2,36 +2,54 @@
 <html dir="rtl" lang="he">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>מעקב התחייבויות - בית כנסת</title>
   <style>
     :root { --primary: #1a365d; --accent: #2b6cb0; --bg: #f7fafc; --card: #ffffff; --green: #2f855a; --red: #c53030; --amber: #b7791f; }
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-    body { margin: 0; background: var(--bg); color: #1a202c; padding-bottom: 75px; }
-    header { background: var(--primary); color: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 1.05rem; font-weight: bold; position: sticky; top: 0; z-index: 10; }
-    .refresh-btn { background: rgba(255,255,255,0.18); color: #fff; border: none; border-radius: 8px; padding: 6px 10px; font-size: 0.85rem; cursor: pointer; }
+    body { margin: 0; background: var(--bg); color: #1a202c; padding-bottom: 85px; }
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: calc(36px + env(safe-area-inset-top, 10px)) 16px 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.05rem;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .refresh-btn { background: rgba(255,255,255,0.2); color: #fff; border: none; border-radius: 8px; padding: 7px 12px; font-size: 0.85rem; cursor: pointer; }
     .container { max-width: 600px; margin: 0 auto; padding: 14px; }
     .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
     label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.92rem; color: #2d3748; }
     input, select { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 1rem; margin-bottom: 12px; background: #fff; }
     .row-flex { display: flex; gap: 8px; align-items: center; }
-    .row-flex input, .row-flex select { margin-bottom: 0; }
-    button { border: none; border-radius: 8px; padding: 12px 16px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .row-flex input, .row-flex select { margin-bottom: 0; flex: 1; }
+    button { border: none; border-radius: 8px; padding: 11px 14px; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
     .btn-primary { background: var(--primary); color: #fff; width: 100%; }
-    .btn-small { background: var(--accent); color: #fff; padding: 12px 14px; white-space: nowrap; }
-    .btn-pay { background: #e6fffa; color: var(--green); border: 1px solid var(--green); padding: 6px 10px; font-size: 0.82rem; }
-    .btn-partial { background: #fefcbf; color: var(--amber); border: 1px solid var(--amber); padding: 6px 10px; font-size: 0.82rem; }
-    .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; display: flex; z-index: 20; }
+    .btn-small { background: var(--accent); color: #fff; padding: 11px 14px; white-space: nowrap; }
+    .btn-pay { background: #e6fffa; color: var(--green); border: 1px solid var(--green); padding: 7px 12px; font-size: 0.84rem; }
+    .btn-partial { background: #fefcbf; color: var(--amber); border: 1px solid var(--amber); padding: 7px 12px; font-size: 0.84rem; }
+    .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; display: flex; z-index: 20; padding-bottom: env(safe-area-inset-bottom, 0px); }
     .nav button { flex: 1; background: none; color: #4a5568; border-radius: 0; padding: 12px 4px; font-size: 0.9rem; }
     .nav button.active { color: var(--primary); border-top: 3px solid var(--primary); font-weight: bold; }
     .hidden { display: none; }
     .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #edf2f7; }
-    .badge-debt { background: #fed7d7; color: var(--red); padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-    .badge-ok { background: #c6f6d5; color: var(--green); padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-    .toast { position: fixed; top: 65px; left: 50%; transform: translateX(-50%); background: #2f855a; color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 50; }
+    .badge-debt { background: #fed7d7; color: var(--red); padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+    .badge-ok { background: #c6f6d5; color: var(--green); padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; }
+    .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: #2f855a; color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 600; z-index: 50; max-width: 90%; text-align: center; }
     .quick-amounts { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .quick-amounts button { background: #edf2f7; color: #2d3748; padding: 8px 12px; font-size: 0.9rem; flex: 1; }
     .sync-note { font-size: 0.78rem; color: #718096; text-align: center; margin-bottom: 10px; }
+    .person-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #fff; }
+    .person-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 8px; }
+    .person-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .person-details { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e0; background: #f8fafc; border-radius: 8px; padding: 10px; font-size: 0.86rem; }
+    .expand-hint { font-size: 0.78rem; color: #718096; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -40,16 +58,17 @@
   <button class="refresh-btn" onclick="syncFromSheet(true)">רענן סנכרון</button>
 </header>
 <div id="toast" class="toast hidden"></div>
-<div id="loader" style="text-align:center; padding:30px;">טוען נתונים...</div>
+<div id="loader" style="text-align:center; padding:60px 20px;">טוען נתונים...</div>
 
 <div id="app" class="container hidden">
   <div id="syncStatus" class="sync-note"></div>
 
   <div id="tab-entry">
     <div class="card">
-      <label>1. בחר שבת / מועד</label>
+      <label>1. חפש או בחר שבת / מועד</label>
       <div class="row-flex" style="margin-bottom:12px;">
-        <select id="dateSelect"></select>
+        <input list="datesList" id="dateInput" placeholder="הקלד או בחר שבת / מועד...">
+        <datalist id="datesList"></datalist>
         <button class="btn-small" onclick="toggleNewDate()">+ שבת</button>
       </div>
       <div id="newDateBox" class="hidden" style="background:#edf2f7; padding:10px; border-radius:8px; margin-bottom:12px;">
@@ -99,6 +118,7 @@
 
   <div id="tab-dates" class="hidden">
     <div class="card">
+      <input type="text" id="searchDatesInput" oninput="renderDatesSummary()" placeholder="חפש שבת או מועד...">
       <div style="font-weight:bold; margin-bottom:8px;">סיכום הכנסות לפי שבת / מועד</div>
       <div id="datesSummaryList"></div>
     </div>
@@ -117,6 +137,7 @@
   const CACHE_KEY = 'synagogue_app_cache_v1';
 
   let appData = { people: [], dates: [], commitments: [] };
+  const expandedPeople = new Set();
 
   function saveCache(data) {
     try {
@@ -188,17 +209,22 @@
   }
 
   function refreshUI() {
-    const dateSel = document.getElementById('dateSelect');
-    const prevDate = dateSel.value;
-    dateSel.innerHTML = '';
-    [...appData.dates].reverse().forEach(d => {
+    const reversedDates = [...appData.dates].reverse();
+    const datesDatalist = document.getElementById('datesList');
+    const dateInput = document.getElementById('dateInput');
+
+    datesDatalist.innerHTML = '';
+    reversedDates.forEach(d => {
       const opt = document.createElement('option');
       opt.value = d.title;
-      opt.textContent = d.title;
-      dateSel.appendChild(opt);
+      datesDatalist.appendChild(opt);
     });
-    if (prevDate && appData.dates.some(d => d.title === prevDate)) dateSel.value = prevDate;
-    dateSel.onchange = renderShabbatEntries;
+
+    if (!dateInput.value && reversedDates.length > 0) {
+      dateInput.value = reversedDates[0].title;
+    }
+    dateInput.oninput = renderShabbatEntries;
+    dateInput.onchange = renderShabbatEntries;
 
     const datalist = document.getElementById('peopleList');
     datalist.innerHTML = '';
@@ -242,7 +268,7 @@
       const data = await apiCall('addDate', { title, dateStr: new Date().toISOString().slice(0, 10) });
       saveCache(data);
       onDataLoaded(data, 'מסונכרן מול הגיליון');
-      document.getElementById('dateSelect').value = title;
+      document.getElementById('dateInput').value = title;
       document.getElementById('newDateTitle').value = '';
       document.getElementById('newDateBox').classList.add('hidden');
       showToast('השבת נוספה!');
@@ -252,7 +278,7 @@
   }
 
   async function submitCommitment() {
-    const dateTitle = document.getElementById('dateSelect').value;
+    const dateTitle = document.getElementById('dateInput').value.trim();
     const person = document.getElementById('personInput').value.trim();
     const amount = document.getElementById('amountInput').value;
     const type = document.getElementById('typeInput').value.trim();
@@ -267,6 +293,9 @@
     try {
       if (!appData.people.some(p => p.name === person)) {
         await apiCall('addPerson', { name: person, phone: '', notes: '' });
+      }
+      if (!appData.dates.some(d => d.title === dateTitle)) {
+        await apiCall('addDate', { title: dateTitle, dateStr: new Date().toISOString().slice(0, 10) });
       }
       const data = await apiCall('addCommitment', { person, dateTitle, amount, type, notes: '' });
       saveCache(data);
@@ -283,9 +312,13 @@
   }
 
   function renderShabbatEntries() {
-    const selectedDate = document.getElementById('dateSelect').value;
+    const selectedDate = document.getElementById('dateInput').value.trim();
     const container = document.getElementById('shabbatEntriesList');
     const items = appData.commitments.filter(c => c.dateTitle === selectedDate);
+    if (!selectedDate) {
+      container.innerHTML = '<div style="color:#718096; font-size:0.9rem;">בחר או הקלד שבת לצפייה בפתקים שהוזנו.</div>';
+      return;
+    }
     if (!items.length) {
       container.innerHTML = '<div style="color:#718096; font-size:0.9rem;">עדיין לא הוזנו פתקים לשבת זו.</div>';
       return;
@@ -301,6 +334,16 @@
     </div>`;
   }
 
+  function togglePersonCard(encodedName) {
+    const personName = decodeURIComponent(encodedName);
+    if (expandedPeople.has(personName)) {
+      expandedPeople.delete(personName);
+    } else {
+      expandedPeople.add(personName);
+    }
+    renderPeopleSummary();
+  }
+
   function renderPeopleSummary() {
     const query = document.getElementById('searchDebtInput').value.trim().toLowerCase();
     const container = document.getElementById('peopleSummaryList');
@@ -309,34 +352,102 @@
       .map(p => {
         const openItems = appData.commitments.filter(c => c.person === p.name && c.remaining > 0);
         const debt = openItems.reduce((sum, c) => sum + c.remaining, 0);
+        const isExpanded = expandedPeople.has(p.name);
+        const safeName = encodeURIComponent(p.name);
 
-        const detailsHtml = openItems.map(item => `
-          <div style="padding:6px 0; border-bottom:1px dashed #e2e8f0; font-size:0.85rem;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span><strong>${item.dateTitle}</strong> ${item.type ? '('+item.type+')' : ''}</span>
-              <span>נותר: <strong>₪${item.remaining}</strong> מתוך ₪${item.amount}</span>
+        const detailsRows = openItems.map(item => `
+          <div style="padding:7px 0; border-bottom:1px dashed #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div>
+              <strong>${item.dateTitle}</strong> ${item.type ? '('+item.type+')' : ''}
             </div>
-            <div style="display:flex; gap:6px; margin-top:6px;">
-              <button class="btn-partial" onclick="partialPay(${item.rowIndex}, ${item.remaining})">תשלום חלקי</button>
-              <button class="btn-pay" onclick="payItem(${item.rowIndex})">סמן שולם מלא</button>
+            <div style="white-space:nowrap;">
+              נותר: <strong>₪${item.remaining}</strong> <span style="color:#718096;">/ ₪${item.amount}</span>
             </div>
           </div>
         `).join('');
 
-        return `<div style="padding:12px 0; border-bottom:1px solid #e2e8f0;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>${p.name}</strong>
-            <span class="${debt > 0 ? 'badge-debt' : 'badge-ok'}">${debt > 0 ? 'חוב: ₪' + debt : 'אין חוב'}</span>
+        const actionsHtml = debt > 0 ? `
+          <div class="person-actions" onclick="event.stopPropagation()">
+            <button class="btn-partial" onclick="partialPayPerson('${safeName}', ${debt})">תשלום חלקי</button>
+            <button class="btn-pay" onclick="payAllPerson('${safeName}')">שלם הכל (₪${debt})</button>
           </div>
-          ${detailsHtml ? '<div style="margin-top:8px; padding-right:8px; border-right:2px solid #cbd5e0;">' + detailsHtml + '</div>' : ''}
-        </div>`;
+        ` : '';
+
+        const detailsHtml = isExpanded ? `
+          <div class="person-details">
+            ${detailsRows || '<div style="color:#718096;">אין חיובים פתוחים לשבתות.</div>'}
+          </div>
+        ` : '';
+
+        return `
+          <div class="person-card">
+            <div class="person-header" onclick="togglePersonCard('${safeName}')">
+              <div>
+                <div style="font-size:1rem;"><strong>${p.name}</strong></div>
+                <div class="expand-hint">${openItems.length} פריטים פתוחים · לחץ ל${isExpanded ? 'הסתרת' : 'הצגת'} פירוט שבתות</div>
+              </div>
+              <span class="${debt > 0 ? 'badge-debt' : 'badge-ok'}">${debt > 0 ? 'לתשלום: ₪' + debt : 'אין חוב'}</span>
+            </div>
+            ${actionsHtml}
+            ${detailsHtml}
+          </div>
+        `;
       }).join('');
     container.innerHTML = html || '<div style="color:#718096;">לא נמצאו תוצאות.</div>';
   }
 
+  async function partialPayPerson(encodedName, totalDebt) {
+    const personName = decodeURIComponent(encodedName);
+    const val = prompt(`תשלום חלקי עבור ${personName} (סה"כ חוב: ₪${totalDebt}):`);
+    if (!val) return;
+    let remainingToApply = Number(val);
+    if (isNaN(remainingToApply) || remainingToApply <= 0) return showToast('יש להזין סכום תקין', true);
+
+    const openItems = appData.commitments.filter(c => c.person === personName && c.remaining > 0);
+    if (!openItems.length) return showToast('אין חוב פתוח לרישום', true);
+
+    try {
+      let latestData = appData;
+      for (const item of openItems) {
+        if (remainingToApply <= 0) break;
+        const payNow = Math.min(item.remaining, remainingToApply);
+        latestData = await apiCall('recordPayment', { rowIndex: item.rowIndex, paymentAmount: payNow });
+        remainingToApply -= payNow;
+      }
+      saveCache(latestData);
+      onDataLoaded(latestData, 'מסונכרן מול הגיליון');
+      showToast('התשלום החלקי נרשם!');
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  }
+
+  async function payAllPerson(encodedName) {
+    const personName = decodeURIComponent(encodedName);
+    const openItems = appData.commitments.filter(c => c.person === personName && c.remaining > 0);
+    if (!openItems.length) return showToast('אין חוב פתוח לרישום', true);
+
+    try {
+      let latestData = appData;
+      for (const item of openItems) {
+        latestData = await apiCall('markAsPaid', { rowIndex: item.rowIndex });
+      }
+      saveCache(latestData);
+      onDataLoaded(latestData, 'מסונכרן מול הגיליון');
+      showToast(`כל החוב של ${personName} סומן כשולם!`);
+    } catch (err) {
+      showToast(err.message, true);
+    }
+  }
+
   function renderDatesSummary() {
+    const query = (document.getElementById('searchDatesInput')?.value || '').trim().toLowerCase();
     const container = document.getElementById('datesSummaryList');
-    container.innerHTML = [...appData.dates].reverse().map(d => {
+    const filteredDates = [...appData.dates]
+      .reverse()
+      .filter(d => d.title.toLowerCase().includes(query));
+
+    container.innerHTML = filteredDates.map(d => {
       const items = appData.commitments.filter(c => c.dateTitle === d.title);
       const total = items.reduce((s, c) => s + c.amount, 0);
       const paid = items.reduce((s, c) => s + c.paidAmount, 0);
@@ -347,33 +458,7 @@
         </div>
         <div style="font-weight:bold; font-size:1.05rem;">₪${total}</div>
       </div>`;
-    }).join('') || '<div style="color:#718096;">עדיין לא הוגדרו שבתות.</div>';
-  }
-
-  async function partialPay(rowIndex, remaining) {
-    const val = prompt('כמה שולם עכשיו? (נותר לתשלום: ₪' + remaining + ')');
-    if (!val) return;
-    const num = Number(val);
-    if (isNaN(num) || num <= 0) return showToast('יש להזין סכום תקין', true);
-    try {
-      const data = await apiCall('recordPayment', { rowIndex, paymentAmount: num });
-      saveCache(data);
-      onDataLoaded(data, 'מסונכרן מול הגיליון');
-      showToast('התשלום החלקי נרשם!');
-    } catch (err) {
-      showToast(err.message, true);
-    }
-  }
-
-  async function payItem(rowIndex) {
-    try {
-      const data = await apiCall('markAsPaid', { rowIndex });
-      saveCache(data);
-      onDataLoaded(data, 'מסונכרן מול הגיליון');
-      showToast('סומן כשולם מלא!');
-    } catch (err) {
-      showToast(err.message, true);
-    }
+    }).join('') || '<div style="color:#718096;">לא נמצאו שבתות תואמות.</div>';
   }
 
   function switchTab(tab) {
