@@ -19,10 +19,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Accept Android SDK licenses & install platform 33 if needed
+      - name: Accept Android SDK licenses & install platform 35 if needed
         run: |
           yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-33" "build-tools;33.0.2" || true
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: Create minimal Android WebView project
         run: |
@@ -33,25 +33,27 @@ jobs:
           cp index.html app/src/main/assets/index.html
 
           cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
           rootProject.name = "ShulTracker"
           include ':app'
           EOF
 
           cat << 'EOF' > build.gradle
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.4'
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
+          plugins {
+              id 'com.android.application' version '8.13.0' apply false
           }
           EOF
 
@@ -62,12 +64,12 @@ jobs:
 
           android {
               namespace "com.shul.tracker"
-              compileSdk 33
+              compileSdk 35
 
               defaultConfig {
                   applicationId "com.shul.tracker"
                   minSdk 23
-                  targetSdk 33
+                  targetSdk 35
                   versionCode 1
                   versionName "1.0"
               }
@@ -77,10 +79,15 @@ jobs:
                       minifyEnabled false
                   }
               }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
           }
 
           dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
+              implementation 'androidx.appcompat:appcompat:1.7.0'
           }
           EOF
 
@@ -148,7 +155,7 @@ jobs:
           EOF
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build Debug APK
         run: gradle assembleDebug --no-daemon
