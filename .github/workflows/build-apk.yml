@@ -42,16 +42,27 @@ jobs:
           ICON_FILE=""
           if [ -f "icon.jpg" ]; then
             ICON_FILE="icon.jpg"
+          elif [ -f "icon.jpeg" ]; then
+            ICON_FILE="icon.jpeg"
           elif [ -f "icon.png" ]; then
             ICON_FILE="icon.png"
           fi
 
-          if [ -n "$ICON_FILE" ]; then
-            python3 -m pip install -q Pillow
-            python3 -c '
-          from PIL import Image
+          python3 - << 'EOF'
           import os
-          img = Image.open(os.environ["ICON_FILE"]).convert("RGBA")
+          try:
+              from PIL import Image
+          except ImportError:
+              import subprocess, sys
+              subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "Pillow"])
+              from PIL import Image
+
+          icon_path = os.environ.get("ICON_FILE", "")
+          if icon_path and os.path.exists(icon_path):
+              img = Image.open(icon_path).convert("RGBA")
+          else:
+              img = Image.new("RGBA", (512, 512), (26, 54, 93, 255))
+
           sizes = {
               "mipmap-mdpi": 48,
               "mipmap-hdpi": 72,
@@ -63,8 +74,7 @@ jobs:
               resized = img.resize((px, px), Image.Resampling.LANCZOS)
               resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
               resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
-          '
-          fi
+          EOF
 
           cat << 'EOF' > gradle.properties
           android.useAndroidX=true
