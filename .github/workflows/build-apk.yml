@@ -29,8 +29,17 @@ jobs:
           mkdir -p app/src/main/java/com/shul/tracker
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/assets
+          mkdir -p gradle/wrapper
 
           cp index.html app/src/main/assets/index.html
+
+          cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
 
           cat << 'EOF' > settings.gradle
           pluginManagement {
@@ -154,7 +163,7 @@ jobs:
           }
           EOF
 
-      - name: Generate compatible Gradle Wrapper (8.14.3)
+      - name: Generate gradlew script
         run: gradle wrapper --gradle-version 8.14.3 --distribution-type bin --no-daemon
 
       - name: Build Debug APK
