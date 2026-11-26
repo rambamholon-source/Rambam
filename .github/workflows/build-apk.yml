@@ -1,9 +1,11 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
 
 jobs:
   build:
@@ -29,11 +31,11 @@ jobs:
           mkdir -p app/src/main/java/com/shul/tracker
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/assets
-          mkdir -p app/src/main/res/mipmap-mdpi \
-                   app/src/main/res/mipmap-hdpi \
-                   app/src/main/res/mipmap-xhdpi \
-                   app/src/main/res/mipmap-xxhdpi \
-                   app/src/main/res/mipmap-xxxhdpi
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           cp index.html app/src/main/assets/index.html
 
@@ -45,27 +47,23 @@ jobs:
           fi
 
           if [ -n "$ICON_FILE" ]; then
-            python3 - << EOF
-try:
-    from PIL import Image
-except ImportError:
-    import subprocess, sys
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "Pillow"])
-    from PIL import Image
-
-img = Image.open("$ICON_FILE").convert("RGBA")
-sizes = {
-    "mipmap-mdpi": 48,
-    "mipmap-hdpi": 72,
-    "mipmap-xhdpi": 96,
-    "mipmap-xxhdpi": 144,
-    "mipmap-xxxhdpi": 192,
-}
-for folder, px in sizes.items():
-    resized = img.resize((px, px), Image.Resampling.LANCZOS)
-    resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
-    resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
-EOF
+            python3 -m pip install -q Pillow
+            python3 -c '
+          from PIL import Image
+          import os
+          img = Image.open(os.environ["ICON_FILE"]).convert("RGBA")
+          sizes = {
+              "mipmap-mdpi": 48,
+              "mipmap-hdpi": 72,
+              "mipmap-xhdpi": 96,
+              "mipmap-xxhdpi": 144,
+              "mipmap-xxxhdpi": 192,
+          }
+          for folder, px in sizes.items():
+              resized = img.resize((px, px), Image.Resampling.LANCZOS)
+              resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
+              resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
+          '
           fi
 
           cat << 'EOF' > gradle.properties
