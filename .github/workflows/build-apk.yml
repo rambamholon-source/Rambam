@@ -27,77 +27,22 @@ jobs:
           sdkmanager --install "platforms;android-35" "build-tools;35.0.0" || true
 
       - name: Create minimal Android WebView project
-        env:
-          ICON_FILE: icon.jpg
         run: |
           mkdir -p app/src/main/java/com/shul/tracker
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/drawable
           mkdir -p app/src/main/assets
-          mkdir -p app/src/main/res/mipmap-mdpi
-          mkdir -p app/src/main/res/mipmap-hdpi
-          mkdir -p app/src/main/res/mipmap-xhdpi
-          mkdir -p app/src/main/res/mipmap-xxhdpi
-          mkdir -p app/src/main/res/mipmap-xxxhdpi
 
           cp index.html app/src/main/assets/index.html
 
-          CHOSEN_ICON=""
-          if [ -n "$ICON_FILE" ] && [ -f "$ICON_FILE" ]; then
-            CHOSEN_ICON="$ICON_FILE"
-          elif [ -f "icon.jpg" ]; then
-            CHOSEN_ICON="icon.jpg"
-          elif [ -f "icon.jpeg" ]; then
-            CHOSEN_ICON="icon.jpeg"
+          ICON_ATTR=""
+          if [ -f "icon.jpg" ]; then
+            cp icon.jpg app/src/main/res/drawable/icon.jpg
+            ICON_ATTR='android:icon="@drawable/icon"'
           elif [ -f "icon.png" ]; then
-            CHOSEN_ICON="icon.png"
+            cp icon.png app/src/main/res/drawable/icon.png
+            ICON_ATTR='android:icon="@drawable/icon"'
           fi
-
-          python3 -m pip install --break-system-packages -q Pillow || true
-
-          CHOSEN_ICON="$CHOSEN_ICON" python3 - << 'EOF'
-          import os, shutil, struct, zlib
-
-          icon_path = os.environ.get("CHOSEN_ICON", "")
-          sizes = {
-              "mipmap-mdpi": 48,
-              "mipmap-hdpi": 72,
-              "mipmap-xhdpi": 96,
-              "mipmap-xxhdpi": 144,
-              "mipmap-xxxhdpi": 192,
-          }
-
-          def write_solid_png(path, size, rgba=(26, 54, 93, 255)):
-              def chunk(tag, data):
-                  return struct.pack("!I", len(data)) + tag + data + struct.pack("!I", zlib.crc32(tag + data) & 0xffffffff)
-              raw = b"".join(b"\x00" + bytes(rgba) * size for _ in range(size))
-              ihdr = struct.pack("!IIBBBBB", size, size, 8, 6, 0, 0, 0)
-              png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
-              with open(path, "wb") as f:
-                  f.write(png)
-
-          try:
-              from PIL import Image
-              if icon_path and os.path.exists(icon_path):
-                  img = Image.open(icon_path).convert("RGBA")
-              else:
-                  img = Image.new("RGBA", (512, 512), (26, 54, 93, 255))
-
-              for folder, px in sizes.items():
-                  resized = img.resize((px, px), Image.Resampling.LANCZOS)
-                  resized.save(f"app/src/main/res/{folder}/ic_launcher.png")
-                  resized.save(f"app/src/main/res/{folder}/ic_launcher_round.png")
-          except Exception as e:
-              print("Fallback icon generator used:", e)
-              for folder, px in sizes.items():
-                  p1 = f"app/src/main/res/{folder}/ic_launcher.png"
-                  p2 = f"app/src/main/res/{folder}/ic_launcher_round.png"
-                  if icon_path and os.path.exists(icon_path) and icon_path.lower().endswith(".png"):
-                      shutil.copyfile(icon_path, p1)
-                      shutil.copyfile(icon_path, p2)
-                  else:
-                      write_solid_png(p1, px)
-                      write_solid_png(p2, px)
-          EOF
 
           cat << 'EOF' > gradle.properties
           android.useAndroidX=true
@@ -170,16 +115,14 @@ jobs:
           </resources>
           EOF
 
-          cat << 'EOF' > app/src/main/AndroidManifest.xml
+          cat << EOF > app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET" />
               <application
                   android:label="@string/app_name"
-                  android:icon="@mipmap/ic_launcher"
-                  android:roundIcon="@mipmap/ic_launcher_round"
-                  android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
-                  android:usesCleartextTraffic="true">
+                  ${ICON_ATTR}
+                  android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true">
@@ -216,7 +159,6 @@ jobs:
                       settings.setJavaScriptEnabled(true);
                       settings.setDomStorageEnabled(true);
                       settings.setDatabaseEnabled(true);
-                      settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
 
                       webView.setWebViewClient(new WebViewClient());
                       webView.setWebChromeClient(new WebChromeClient());
