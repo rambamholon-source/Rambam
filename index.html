@@ -1,2 +1,42 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbydc_MX8VLvK-JcpkwUlOMwhXukVsrOK4ibpsYt-n1H9YOXAYW3qw4emlc9a8S_hcjZCA/exec';
-const API_KEY = 'AVIEL';
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>מעקב בית כנסת</title>
+  <style>
+    body { font-family: sans-serif; margin: 16px; }
+    button { padding: 10px 16px; font-size: 16px; }
+    pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>מעקב בית כנסת</h2>
+  <button id="syncBtn">רענן סנכרון</button>
+  <pre id="status">מוכן לסנכרון...</pre>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbydc_MX8VLvK-JcpkwUlOMwhXukVsrOK4ibpsYt-n1H9YOXAYW3qw4emlc9a8S_hcjZCA/exec';
+    const API_KEY = 'AVIEL';
+
+    async function syncData() {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = 'מסנכרן נתונים...';
+      try {
+        const res = await fetch(`${API_URL}?apiKey=${encodeURIComponent(API_KEY)}`);
+        const data = await res.json();
+        localStorage.setItem('shul_cache', JSON.stringify(data));
+        statusEl.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        const cached = localStorage.getItem('shul_cache');
+        statusEl.textContent = cached
+          ? 'שגיאת רשת - מוצג מידע שמור:\n' + cached
+          : 'שגיאה בטעינה: ' + err.message;
+      }
+    }
+
+    document.getElementById('syncBtn').addEventListener('click', syncData);
+    window.addEventListener('DOMContentLoaded', syncData);
+  </script>
+</body>
+</html>
