@@ -32,6 +32,10 @@ jobs:
 
           cp index.html app/src/main/assets/index.html
 
+          cat << 'EOF' > gradle.properties
+          android.useAndroidX=true
+          EOF
+
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
